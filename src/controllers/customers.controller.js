@@ -15,6 +15,23 @@ export async function getCustomers(req,res) {
     }
 };
 
+export async function getCustomersByID(req, res) {
+    const id = req.params.id;
+
+    try {
+        const foundCustomer = await db.query(`SELECT * FROM customers WHERE "id"=$1`, [id]);
+        if (foundCustomer.rowCount === 0) {
+            return res.sendStatus(404);
+        }
+
+        foundCustomer.rows[0].birthday = dayjs(foundCustomer.rows[0].birthday).format("YYYY-MM-DD");
+        return res.send(foundCustomer.rows[0]);        
+    } catch (error) {
+        return res.status(500).send(error.message);
+    }
+
+};
+
 export async function addCustomer(req,res) {
     const { name, phone, birthday, cpf } = req.body;
 
