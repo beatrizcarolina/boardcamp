@@ -53,3 +53,26 @@ export async function addCustomer(req,res) {
     }
 
 };
+
+export async function updateCustomer(req,res) {
+    const { id } = req.params;
+    const { name, phone, birthday, cpf } = req.body;
+    
+    try {
+        const foundCustomer = await db.query(`SELECT * FROM customers WHERE cpf=$1`, [cpf]);
+        if (foundCustomer.rowCount !== 0 && foundCustomer.rows[0].id !== Number(id)) {
+            return res.sendStatus(409);
+        }
+
+        await db.query(`UPDATE customers SET "name"=$1, "phone"=$2, "cpf"=$3, "birthday"=$4 WHERE "id"=$5`, [
+            name,
+            phone,
+            cpf,
+            birthday,
+            id,
+        ]);
+        return res.sendStatus(200);        
+    } catch (error) {
+        return res.status(500).send(error.message);
+    }
+}
