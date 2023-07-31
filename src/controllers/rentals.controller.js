@@ -2,7 +2,6 @@ import { db } from "../database/database.js";
 import dayjs from "dayjs";
 
 export async function getRental(req,res) {
-    const { customerId, gameId } = req.query;
     let query = `
     SELECT rentals.*, 
     customers.name AS "customerName", 
@@ -12,18 +11,6 @@ export async function getRental(req,res) {
     INNER JOIN games ON rentals."gameId" = games.id
     `;
     const queryParams = [];
-
-    if (customerId) {
-        query += ` WHERE rentals."customerId" = $${queryParams.length + 1}`;
-        queryParams.push(customerId);
-    };
-
-    if (gameId) {
-        query += query.includes("WHERE") ? " AND " : " WHERE ";
-        query += `rentals."gameId" = $${queryParams.length + 1}`;
-        queryParams.push(gameId);
-    };
-
 
     try {
         const rentals = await db.query(query, queryParams);
@@ -81,11 +68,42 @@ export async function addRental(req,res) {
             `INSERT INTO rentals 
             ("customerId", "gameId", "daysRented", "rentDate", "originalPrice", "returnDate", "delayFee") 
             VALUES ($1, $2, $3, $4, $5, null, null)`,
-            [customerId, gameId, daysRented, dayjs().format("YYYY-MM-DD"), game.rows[0].pricePerDay*daysRented]
+            [customerId, gameId, daysRented, dayjs().format("YYYY-MM-DD"), game.rows[0].dayPrice*daysRented]
         );
 
         return res.sendStatus(201);
     } catch (error) {
         return res.status(500).send(error.message);
     }
-}
+};
+
+export async function finishRental(req,res) {
+    const id = req.params.id;
+
+    try {
+        const rental = await db.query(`SELECT * FROM rentals WHERE "id"=$1;`, [id]);
+        if (rental.rowCount === 0) {
+            return res.sendStatus(404);
+        };
+
+        if (rental.rows[0].returnDate !== null) {
+            return res.sendStatus(400);
+        };
+
+        const { rentDate, daysRented, originalPrice } = rental.rows[0];
+        const pastDays = dayjs().diff(dayjs(rentDate), "days");
+        const dayPrice = originalPrice / daysRented;
+        const delayFee = pastDays > daysRented ? dayPrice * (pastDays - daysRented) : null;
+
+        await db.query(`UPDATE rentals SET "returnDate"=$1, "delayFee"=$2 WHERE "id"=$3;`, [
+            dayjs().format("YYYY-MM-DD"),
+            delayFee,
+            id,
+        ]);
+
+        return res.sendStatus(200);
+        
+    } catch (error) {
+        return res.status(500).send(error.message);
+    }
+};
