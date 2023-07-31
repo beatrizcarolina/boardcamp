@@ -1,5 +1,20 @@
 import { db } from "../database/database.js";
 
+export async function getCustomers(req,res) {
+    let query = `SELECT * FROM customers`;
+    const queryParams = [];
+
+    try {
+        const customers = await db.query(query, queryParams);
+        customers.rows.forEach((customer) => {
+            customer.birthday = dayjs(customer.birthday).format("YYYY-MM-DD");
+        });
+        return res.send(customers.rows);     
+    } catch (error) {
+        return res.status(500).send(error.message);
+    }
+};
+
 export async function addCustomer(req,res) {
     const { name, phone, birthday, cpf } = req.body;
 
