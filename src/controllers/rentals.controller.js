@@ -68,7 +68,7 @@ export async function addRental(req,res) {
             `INSERT INTO rentals 
             ("customerId", "gameId", "daysRented", "rentDate", "originalPrice", "returnDate", "delayFee") 
             VALUES ($1, $2, $3, $4, $5, null, null)`,
-            [customerId, gameId, daysRented, dayjs().format("YYYY-MM-DD"), game.rows[0].dayPrice*daysRented]
+            [customerId, gameId, daysRented, dayjs().format("YYYY-MM-DD"), game.rows[0].pricePerDay*daysRented]
         );
 
         return res.sendStatus(201);
