@@ -78,7 +78,7 @@ Para cada entidada foi realizado um CRUD:
 - POST `/rentals/:id/return`: Finaliza um aluguel e atualiza os campos *returnDate* e *delayFee* com a data atual e o valor equivalente ao número de dias de atraso vezes o preço por dia do jogo no momento do retorno. Se o id não corresponder a nenhum aluguel, o erro 404 é retornado. É verificado se o aluguel já não está finalizado, se estiver, o erro 400 é retornado. A estrutura esperada é a mesma do POST `/rentals`.
 - DELETE `/rentals/:id`: Deleta um aluguel dado o seu id. Se o id não existir é retornado um erro 404. Se o aluguel já não estiver finalizado, é retornado um erro 400.
 
-# Motivaçãoo
+# Motivação
 Este projeto foi feito para praticar a constução de uma API usando o ecossistema Node e Express e banco de dados relacional (SQL).
 
 # Tecnologias utilizadas
